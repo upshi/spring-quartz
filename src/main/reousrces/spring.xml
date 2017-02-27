@@ -1,45 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	   xmlns:context="http://www.springframework.org/schema/context"
-	   xmlns:aop="http://www.springframework.org/schema/aop" xmlns:task="http://www.springframework.org/schema/task"
-	   xsi:schemaLocation="http://www.springframework.org/schema/beans
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
 http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
 http://www.springframework.org/schema/context
-http://www.springframework.org/schema/context/spring-context-3.0.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+http://www.springframework.org/schema/context/spring-context-3.0.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
 
-	<!-- 自动扫描(自动注入) -->
-	<context:component-scan base-package="cn.upshi.springquartz" />
+    <!-- 自动扫描(自动注入) -->
+    <context:component-scan base-package="cn.upshi.springquartz"/>
 
-	<!-- 基于注解方式的定时器 -->
-	<task:annotation-driven/>
+    <!-- 基于注解方式的定时器 -->
+    <task:annotation-driven/>
 
+    <!-- 自定义的Job类 -->
+    <bean id="xmlBasedJob" class="cn.upshi.springquartz.job.XMLBasedJob"/>
 
-	<!-- 自定义的Job类 -->
-	<bean id="xmlBasedJob" class="cn.upshi.springquartz.job.XMLBasedJob" />
+    <!-- 一个可执行的定时器 -->
+    <bean id="jobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
+        <!-- 指定Job类 -->
+        <property name="targetObject" ref="xmlBasedJob"/>
+        <!-- 指定Job执行的方法 -->
+        <property name="targetMethod" value="execute"/>
+    </bean>
+    <!-- Job的触发器 -->
+    <bean id="jobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
+        <property name="jobDetail" ref="jobDetail"/>
+        <!-- 每5秒运行一次 -->
+        <property name="cronExpression" value="0/5 * * * * ?"/>
+    </bean>
 
-	<!-- 一个可执行的定时器工作 -->
-	<bean id="jobDetail" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">
-		<!-- 指定Job类 -->
-		<property name="targetObject" ref="xmlBasedJob" />
-		<!-- 指定Job执行的方法 -->
-		<property name="targetMethod" value="execute" />
-	</bean>
-	<!-- Job的触发器 -->
-	<bean id="jobTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
-		<property name="jobDetail" ref="jobDetail" />
-		<!-- 每10秒运行一次 -->
-		<property name="cronExpression" value="0/5 * * * * ?" />
-	</bean>
-
-	<!-- Job调度器 -->
-	<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
-		<property name="triggers">
-			<list>
-				<!-- <ref bean="exampleJobTrigger" /> -->
-				<ref bean="jobTrigger" />
-			</list>
-		</property>
-	</bean>
-
+    <!-- Job调度器 -->
+    <bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
+        <property name="triggers">
+            <list>
+                <ref bean="jobTrigger"/>
+            </list>
+        </property>
+    </bean>
 
 </beans>
